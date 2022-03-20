@@ -117,6 +117,13 @@ int main(int argc, char *argv[]){
               error("ERROR on binding");
      listen(sockfd,5);
      clilen = sizeof(cli_addr);
+     newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, (socklen_t *)&clilen);
+     bzero(buffer,256);
+     buffer[0] = numBitChar.at(0);
+     std::cout<<"first"<<std::endl;
+     n = write(newsockfd, buffer,strlen(buffer));
+     if (n < 0) error("ERROR writing to socket");
+
      while (1) {
      newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, (socklen_t *)&clilen);
      if (newsockfd < 0) 
