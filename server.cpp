@@ -22,23 +22,26 @@ void error(char *msg)
 
 int main(int argc, char *argv[]){
 
+    std::cout<<"server is running"<<std::endl;
+
     std::string temp;
     std::string temp1;
     std::string temp3;
+    std::string temp4;
     std::stringstream tempString;
 
     int temp2 = 0;
     int symbols;
    
 
-    getline(std::cin, temp1);
+    getline(std::cin, temp4);
     
-    tempString << temp1;
+    tempString << temp4;
     
     tempString >> symbols;
 
 
-    // std::vector<info> first(symbols);
+    
     
 
    
@@ -57,8 +60,7 @@ int main(int argc, char *argv[]){
         temp1 = temp[0];
         std::stringstream tempString1;
         tempString1 << temp3;
-        tempString1 >> temp2;
-        
+        tempString1>>temp2;
         character.push_back(temp1);
         value.push_back(temp2);
         
@@ -67,10 +69,22 @@ int main(int argc, char *argv[]){
         
     }
 
-    // for (int i = 0; i < symbols; i++){
-    //     first[i].character = (character.at(i));
-    //     first[i].value = (value.at(i));
-    // }
+  
+     int maxValue = 0;
+     int numBits = 0;
+    for(int i = 0; i< symbols; i++){
+        if (maxValue<value[i]){
+            maxValue=value[i];
+        }
+    }
+     for (int i = 0; i < symbols; i++){
+    numBits = ceil(log2(maxValue+1));
+    }
+    std::stringstream numBitTemp;
+   std::string numBitChar;
+   numBitTemp << numBits;
+   numBitChar = numBitTemp.str();
+        
 
     for(int i = 0; i< symbols; i++){
         std::cout<< character.at(i) << " " << value.at(i) << "\n";
@@ -79,8 +93,11 @@ int main(int argc, char *argv[]){
     }
     
 
-    int sockfd, newsockfd, portno, clilen;
+    int sockfd, newsockfd, portno, clilen, pid;
      char buffer[256];
+
+    
+
      struct sockaddr_in serv_addr, cli_addr;
      int n;
      if (argc < 2) {
@@ -100,14 +117,32 @@ int main(int argc, char *argv[]){
               error("ERROR on binding");
      listen(sockfd,5);
      clilen = sizeof(cli_addr);
+     while (1) {
      newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, (socklen_t *)&clilen);
      if (newsockfd < 0) 
           error("ERROR on accept");
+
+    pid = fork();
+    if(pid < 0){
+        error("ERROR on fork");
+    }
+    if (pid == 0){
+     close(sockfd);
      bzero(buffer,256);
-     n = read(newsockfd,buffer,255);
-     if (n < 0) error("ERROR reading from socket");
+    //  n = read(newsockfd,buffer,255);
+    //  if (n < 0) error("ERROR reading from socket");
+    //  printf("Here is the message: %s\n",buffer);
+     bzero(buffer,256);
+     buffer[0] = numBitChar.at(0);
      printf("Here is the message: %s\n",buffer);
-     n = write(newsockfd,"I got your message",18);
+     n = write(newsockfd, buffer,strlen(buffer));
      if (n < 0) error("ERROR writing to socket");
+     _exit(0);
+    }
+    else close(newsockfd);
+     }
+    
+
      return 0; 
+     
 }
