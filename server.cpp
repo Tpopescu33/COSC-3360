@@ -13,6 +13,11 @@
 #include <pthread.h>
 #include <sstream>
 
+void fireman(int)
+{
+   while (waitpid(-1, NULL, WNOHANG) > 0)
+       std::cout << "" << std::endl;
+}
 
 void error(char *msg)
 {
@@ -118,57 +123,50 @@ int main(int argc, char *argv[]){
      listen(sockfd,5);
      clilen = sizeof(cli_addr);
     
-
-    // while (1) {
-    //  newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, (socklen_t *)&clilen);
-    //  if (newsockfd < 0) 
-    //       error("ERROR on accept");
-
-    // bzero(buffer,256);
-    //  buffer[0] = numBitChar.at(0);
-    //  std::cout<<"first"<<std::endl;
-    //  n = write(newsockfd, buffer,strlen(buffer));
-    //  if (n < 0) error("ERROR writing to socket");
-    // // bzero(buffer,256);
-    // // n=read(newsockfd, buffer, 255);
-    // // printf("Here is the message: %s\n",buffer);
-    // close(newsockfd);
+    signal(SIGCHLD, fireman);
+    
    
+    while (1) {
     newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, (socklen_t *)&clilen);
-
-    bzero(buffer,256);
-     buffer[0] = numBitChar.at(0);
-     std::cout<<"first"<<std::endl;
-     n = write(newsockfd, buffer,strlen(buffer));
-     if (n < 0) error("ERROR writing to socket");
-    for (int i = 0; i< 4; i++){
-    pid = fork();
-    if(pid < 0){
-        error("ERROR on fork");
+     if (newsockfd<0){
+        // error("ERROR on Accpet");
     }
-    if (pid == 0){
+if (fork() == 0){
+    // close(sockfd);
+    
+
+    
+    
     
      bzero(buffer,256);
      n = read(newsockfd,buffer,255);
      if (n < 0) error("ERROR reading from socket");
-     printf("Here is the message: %s\n",buffer);
+     
+     if (buffer[0] == 5){
+
+        buffer[0] = numBitChar.at(0);
+        printf("Here is the message: %s\n",buffer);
+        n = write(newsockfd, buffer,strlen(buffer));
+       
+     } else {
+    
+    
+    n= write(newsockfd,buffer,255);
      bzero(buffer,256);
-    //  n = read(newsockfd,buffer,255);
-    //  if (n < 0) error("ERROR reading from socket");
-    //  printf("Here is the message: %s\n",buffer);
-    //  bzero(buffer,256);
+     
+     
+     }
+     if (n < 0) error("ERROR writing to socket");
+     close(newsockfd);
+     _exit(0);
      
     
-     if (n < 0) error("ERROR writing to socket");
-     _exit(0);
-    }
-    else 
-   wait(0);
     }
     
-    
-close(sockfd);
-close(newsockfd);
+    close(newsockfd);
+   
+
+    }
      return 0; 
      
 }
