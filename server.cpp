@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <pthread.h>
 #include <sstream>
+#include <sys/wait.h>
 
 void fireman(int)
 {
@@ -37,7 +38,7 @@ void error(char *msg)
 
 int main(int argc, char *argv[]){
 
-    std::cout<<"server is running"<<std::endl;
+    // std::cout<<"server is running"<<std::endl;
 
     std::string temp;
     std::string temp1;
@@ -103,7 +104,7 @@ int main(int argc, char *argv[]){
         
 
     for(int i = 0; i< symbols; i++){
-        std::cout<< character.at(i) << " " << value.at(i) << "\n";
+        // std::cout<< character.at(i) << " " << value.at(i) << "\n";
      binaryValue.push_back(toBinary(value.at(i), numBits));
     }
 
@@ -154,7 +155,7 @@ if (fork() == 0){
      if (buffer[0] == 5){
 
         buffer[0] = numBitChar.at(0);
-        printf("Here is the message: %s\n",buffer);
+        // printf("Here is the message: %s\n",buffer);
         n = write(newsockfd, buffer,strlen(buffer));
        
      } else {

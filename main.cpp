@@ -57,7 +57,7 @@ void * decode(void *x_void_ptr)
         argv2[i] = x_ptr->argv[2].at(i);
     }
     
-std::cout<<"argc: "<<x_ptr->argc<<", argv0: "<<argv0<<", argv2: "<<argv2<<std::endl;
+// std::cout<<"argc: "<<x_ptr->argc<<", argv0: "<<argv0<<", argv2: "<<argv2<<std::endl;
     
     if (x_ptr -> argc < 3) {
        fprintf(stderr,"usage %s hostname port\n", argv0);
@@ -84,7 +84,7 @@ std::cout<<"argc: "<<x_ptr->argc<<", argv0: "<<argv0<<", argv2: "<<argv2<<std::e
     serv_addr.sin_port = htons(portno);
     if (connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0) 
         error("ERROR connecting");
-    printf("connected\n");
+    // printf("connected\n");
     bzero(buffer,256);
 
     for (int i = 0; i < 3; i++){
@@ -94,7 +94,8 @@ std::cout<<"argc: "<<x_ptr->argc<<", argv0: "<<argv0<<", argv2: "<<argv2<<std::e
 
     n = write(sockfd,buffer,strlen(buffer));
      n=read(sockfd, buffer, 255);
-      printf("Here is the message: %s\n",buffer);
+    //   printf("Here is the message: %s\n",buffer);
+    x_ptr->answers[0] = buffer[0];
     if (n < 0) 
         error("ERROR writing to socket");
     bzero(buffer,256);
@@ -170,7 +171,7 @@ int main(int argc, char *argv[])
     tempString1 >> numBits;
     // numBits=3;
     
-    printf("number of symbols: %d\n",numBits);
+    // printf("number of symbols: %d\n",numBits);
     numChars = compMsg.length()/numBits;
     std::vector<info> first(numChars);
 
@@ -240,7 +241,7 @@ int main(int argc, char *argv[])
 
     std::vector<pthread_t> tid(numChars);
 
-    for(int i = 0; i<7;i++){
+    for(int i = 0; i<numChars;i++){
         if(pthread_create(&tid[i], NULL, decode, &first[i]))
         {
 			fprintf(stderr, "Error creating thread\n");
@@ -251,6 +252,13 @@ int main(int argc, char *argv[])
     for (int i = 0; i < 7; i++)
         	pthread_join(tid[i], NULL);
 
+
+    std::cout<<"Decompressed message: ";
+
+    for (int i = 0; i < numChars; i++) {
+        std::cout<<first[i].answers[0];
+    }
+    std::cout<<std::endl;
     
 
     return 0;
