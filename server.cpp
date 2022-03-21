@@ -18,6 +18,16 @@ void fireman(int)
    while (waitpid(-1, NULL, WNOHANG) > 0)
        std::cout << "" << std::endl;
 }
+std::string toBinary(int n, int numBits)
+{
+    std::string r;
+    while(n!=0) {r=(n%2==0 ?"0":"1")+r; n/=2;}
+    
+    for (int i = r.size(); i < numBits; i++){
+        r.insert(0,"0");
+    }
+    return r;
+}
 
 void error(char *msg)
 {
@@ -53,6 +63,7 @@ int main(int argc, char *argv[]){
 
     std::vector<std::string> character;
     std::vector<int> value;
+    std::vector<std::string> binaryValue;
 
    
 
@@ -68,7 +79,7 @@ int main(int argc, char *argv[]){
         tempString1>>temp2;
         character.push_back(temp1);
         value.push_back(temp2);
-        
+       
        
         
         
@@ -93,10 +104,8 @@ int main(int argc, char *argv[]){
 
     for(int i = 0; i< symbols; i++){
         std::cout<< character.at(i) << " " << value.at(i) << "\n";
-
-
+     binaryValue.push_back(toBinary(value.at(i), numBits));
     }
-    
 
     int sockfd, newsockfd, portno, clilen, pid;
      char buffer[256];
@@ -149,8 +158,19 @@ if (fork() == 0){
         n = write(newsockfd, buffer,strlen(buffer));
        
      } else {
+    std::string tempBinary;
+
+    for (int i=0; i<symbols; i++){
+        if (buffer == binaryValue[i]){
+            bzero(buffer,255);
+            buffer[0] = character[i].at(0);
+        }
+    }
     
     
+   
+
+
     n= write(newsockfd,buffer,255);
      bzero(buffer,256);
      
