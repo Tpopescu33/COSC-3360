@@ -87,7 +87,7 @@ void * decode(void *x_void_ptr)
     // printf("connected\n");
     bzero(buffer,256);
 
-    for (int i = 0; i < 3; i++){
+    for (int i = 0; i < sizeof(x_ptr->binaryValues); i++){
         buffer[i] = x_ptr->binaryValues[i];
     }
     // // printf("Here is the message: %s\n",buffer);
@@ -102,6 +102,7 @@ void * decode(void *x_void_ptr)
    
     // n = read(sockfd1,buffer,255);
     // if (n < 0) 
+   
     //      std::cout<<"ERROR reading from socket";
    
 	// x_ptr->answers = buffer[0];
@@ -182,7 +183,7 @@ int main(int argc, char *argv[])
         }
         first[i/numBits].argc = argc;
         // first[i/numBits].sockfd = sockfd;
-        for (int k = 0; k < 3; k++){
+        for (int k = 0; k < numBits; k++){
             first[i/numBits].argv.push_back(argv[k]);
 
         }
@@ -249,7 +250,7 @@ int main(int argc, char *argv[])
 
 		}	
     }
-    for (int i = 0; i < 7; i++)
+    for (int i = 0; i < numChars; i++)
         	pthread_join(tid[i], NULL);
 
 
