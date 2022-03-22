@@ -64,7 +64,7 @@ void * decode(void *x_void_ptr)
        exit(0);
     }
     portno = atoi(argv2);
-    //sockfd = x_ptr->sockfd;
+    sockfd = x_ptr->sockfd;
     
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) 
@@ -93,12 +93,17 @@ void * decode(void *x_void_ptr)
     // // printf("Here is the message: %s\n",buffer);
 
     n = write(sockfd,buffer,strlen(buffer));
-     n=read(sockfd, buffer, 255);
+    if (n < 0) 
+        error("ERROR reading to socket");
+    bzero(buffer,256);
+
+     n = read(sockfd, buffer, 255);
     //   printf("Here is the message: %s\n",buffer);
     x_ptr->answers[0] = buffer[0];
     if (n < 0) 
         error("ERROR writing to socket");
     bzero(buffer,256);
+    close(sockfd);
    
     // n = read(sockfd1,buffer,255);
     // if (n < 0) 
@@ -164,7 +169,7 @@ int main(int argc, char *argv[])
     if (n < 0) 
          error("ERROR reading from socket");
     
-
+ close(sockfd);
    numBits = std::strtol(buffer, nullptr, 10);
 //     char tempBuffer[sizeof(buffer)];
     
@@ -187,6 +192,7 @@ int main(int argc, char *argv[])
            // std::cout<<first[i].binaryValues[j];
         }
         first[i].argc = argc;
+        first[i].sockfd = sockfd;
         for (int k = 0; k < 3; k++){
             first[i].argv.push_back(argv[k]);
 

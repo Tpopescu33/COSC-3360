@@ -130,7 +130,7 @@ int main(int argc, char *argv[]){
      if (bind(sockfd, (struct sockaddr *) &serv_addr,
               sizeof(serv_addr)) < 0) 
               error("ERROR on binding");
-     listen(sockfd,10);
+     listen(sockfd, symbols + 1);
      clilen = sizeof(cli_addr);
     
     signal(SIGCHLD, fireman);
@@ -139,10 +139,10 @@ int main(int argc, char *argv[]){
     while (1) {
     newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, (socklen_t *)&clilen);
      if (newsockfd<0){
-        // error("ERROR on Accpet");
+        error("ERROR on Accpet");
     }
 if (fork() == 0){
-    // close(sockfd);
+     close(sockfd);
     
 
     
