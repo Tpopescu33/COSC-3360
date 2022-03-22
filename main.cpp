@@ -15,6 +15,8 @@
 #include <pthread.h>
 #include <sstream>
 
+struct sockaddr_in serv_addr;
+struct hostent *server;
 
 struct info {
     std::string binaryValues;
@@ -39,8 +41,7 @@ void * decode(void *x_void_ptr)
     // std::cout<<"argc: "<<x_ptr->argc<<", argv0: "<<x_ptr->argv[0]<<", argv2: "<<x_ptr->argv[2]<<std::endl;
     int sockfd, portno, n;
 
-    struct sockaddr_in serv_addr;
-    struct hostent *server;
+   
 
     char buffer[256];
 
@@ -70,12 +71,13 @@ void * decode(void *x_void_ptr)
     if (sockfd < 0) 
         error("ERROR opening socket");
     // std::cout<<"sockfd: "<<sockfd<<"\n";
-    server = gethostbyname(argv1);
+    //server = gethostbyname(argv1);
+    //std::cout<<"address: "<<server<<"\n";
     if (server == NULL) {
-        fprintf(stderr,"ERROR, no such host\n");
+        fprintf(stderr,"ERROR, no such h1ost\n");
         exit(0);
     }
-    // std::cout<<"address: "<<server<<"\n";
+    //std::cout<<"address: "<<server<<"\n";
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     bcopy((char *)server->h_addr, 
@@ -130,8 +132,7 @@ int main(int argc, char *argv[])
 
      int sockfd, portno, n;
 
-    struct sockaddr_in serv_addr;
-    struct hostent *server;
+   
 
     char buffer[256];
     if (argc < 3) {
@@ -143,6 +144,7 @@ int main(int argc, char *argv[])
     if (sockfd < 0) 
         error("ERROR opening socket");
     server = gethostbyname(argv[1]);
+    //std::cout<<"address: "<<server<<"\n";
     if (server == NULL) {
         fprintf(stderr,"ERROR, no such host\n");
         exit(0);
