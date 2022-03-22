@@ -86,7 +86,7 @@ int main(int argc, char *argv[]){
         
     }
 
-  
+    int opt = 1;
      int maxValue = 0;
      int numBits = 0;
     for(int i = 0; i< symbols; i++){
@@ -122,6 +122,11 @@ int main(int argc, char *argv[]){
      sockfd = socket(AF_INET, SOCK_STREAM, 0);
      if (sockfd < 0) 
         error("ERROR opening socket");
+
+    if (setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR, (char *)&opt, sizeof(opt))<0){
+        error("error setsockopt");
+    };
+    
      bzero((char *) &serv_addr, sizeof(serv_addr));
      portno = atoi(argv[1]);
      serv_addr.sin_family = AF_INET;
