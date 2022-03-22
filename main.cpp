@@ -15,16 +15,16 @@
 #include <pthread.h>
 #include <sstream>
 
-struct sockaddr_in serv_addr;
-struct hostent *server;
+// struct sockaddr_in serv_addr;
+// struct hostent *server;
 
 struct info {
     std::string binaryValues;
     std::string answers;
     int argc; 
     std::vector<std::string> argv;
-    int sockfd;
-
+    struct hostent *server;
+    struct sockaddr_in serv_addr;
 };
 void error(char *msg)
 {
@@ -37,10 +37,11 @@ void * decode(void *x_void_ptr)
     
 	struct info *x_ptr = (struct info *)x_void_ptr;
    
-\
+
     // std::cout<<"argc: "<<x_ptr->argc<<", argv0: "<<x_ptr->argv[0]<<", argv2: "<<x_ptr->argv[2]<<std::endl;
     int sockfd, portno, n;
-
+    struct sockaddr_in serv_addr;
+    struct hostent *server;
    
 
     char buffer[256];
@@ -65,13 +66,14 @@ void * decode(void *x_void_ptr)
        exit(0);
     }
     portno = atoi(argv2);
-    sockfd = x_ptr->sockfd;
+     
     
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) 
         error("ERROR opening socket");
     // std::cout<<"sockfd: "<<sockfd<<"\n";
-    //server = gethostbyname(argv1);
+    server = x_ptr->server;
+    
     //std::cout<<"address: "<<server<<"\n";
     if (server == NULL) {
         fprintf(stderr,"ERROR, no such h1ost\n");
@@ -131,8 +133,9 @@ int main(int argc, char *argv[])
 
 
      int sockfd, portno, n;
-
-   
+    
+   struct sockaddr_in serv_addr;
+   struct hostent *server;
 
     char buffer[256];
     if (argc < 3) {
@@ -194,7 +197,8 @@ int main(int argc, char *argv[])
            // std::cout<<first[i].binaryValues[j];
         }
         first[i].argc = argc;
-        first[i].sockfd = sockfd;
+        first[i].server = server;
+        first[i].serv_addr = serv_addr;
         for (int k = 0; k < 3; k++){
             first[i].argv.push_back(argv[k]);
 
