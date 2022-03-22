@@ -17,7 +17,7 @@
 void fireman(int)
 {
    while (waitpid(-1, NULL, WNOHANG) > 0)
-       std::cout << "" << std::endl;
+       std::cout << "A child process ended" << std::endl;
 }
 std::string toBinary(int n, int numBits)
 {
@@ -104,7 +104,7 @@ int main(int argc, char *argv[]){
         
 
     for(int i = 0; i< symbols; i++){
-        // std::cout<< character.at(i) << " " << value.at(i) << "\n";
+        std::cout<< character.at(i) << " " << value.at(i) << "\n";
      binaryValue.push_back(toBinary(value.at(i), numBits));
     }
 
@@ -130,7 +130,7 @@ int main(int argc, char *argv[]){
      if (bind(sockfd, (struct sockaddr *) &serv_addr,
               sizeof(serv_addr)) < 0) 
               error("ERROR on binding");
-     listen(sockfd,5);
+     listen(sockfd,10);
      clilen = sizeof(cli_addr);
     
     signal(SIGCHLD, fireman);

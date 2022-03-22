@@ -71,10 +71,10 @@ void * decode(void *x_void_ptr)
         error("ERROR opening socket");
     // std::cout<<"sockfd: "<<sockfd<<"\n";
     server = gethostbyname(argv1);
-    // if (server == NULL) {
-    //     fprintf(stderr,"ERROR, no such host\n");
-    //     exit(0);
-    // }
+    if (server == NULL) {
+        fprintf(stderr,"ERROR, no such host\n");
+        exit(0);
+    }
     // std::cout<<"address: "<<server<<"\n";
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
@@ -118,9 +118,9 @@ int main(int argc, char *argv[])
     int numChars;
     int numBits;
     std::string compMsg;
-    std::cin >> compMsg;
+    getline(std::cin, compMsg);
 
-    // std::cout <<"coded message " << compMsg<< std::endl;
+  //  std::cout <<"coded message " << compMsg<< std::endl;
 
 
      int sockfd, portno, n;
@@ -165,30 +165,38 @@ int main(int argc, char *argv[])
          error("ERROR reading from socket");
     
 
-  
-
-    std::stringstream tempString1;
-    tempString1 << buffer[0];
-    tempString1 >> numBits;
-    // numBits=3;
+   numBits = std::strtol(buffer, nullptr, 10);
+//     char tempBuffer[sizeof(buffer)];
     
-    // printf("number of symbols: %d\n",numBits);
+//     for (int i = 0 ; i< sizeof(buffer); i++){
+//     tempBuffer[i] = buffer[i];
+    
+//     }
+//    numBits = (int) tempBuffer;
+    
+   // printf("number of numBits: %d\n",numBits);
     numChars = compMsg.length()/numBits;
+   // printf("number of numChars: %d\n",numChars);
+   // printf("comp MSG: %d\n",compMsg.length());
     std::vector<info> first(numChars);
 
-    for(int i = 0;  i < compMsg.length(); i += numBits){
+
+    for (int i = 0; i < numChars; i++){
         for (int j = 0; j < numBits; j++){
-            first[i/numBits].binaryValues[j] = compMsg.at(i+j);
-            // std::cout<<first[i/numBits].binaryValues[j];
+            first[i].binaryValues[j] = compMsg.at((i*numBits)+j);
+           // std::cout<<first[i].binaryValues[j];
         }
-        first[i/numBits].argc = argc;
-        // first[i/numBits].sockfd = sockfd;
-        for (int k = 0; k < numBits; k++){
-            first[i/numBits].argv.push_back(argv[k]);
+        first[i].argc = argc;
+        for (int k = 0; k < 3; k++){
+            first[i].argv.push_back(argv[k]);
 
         }
-        // std::cout<<"\n";
-    }
+      //  std::cout<<"\n";
+}
+
+    
+
+   // std::cout<<"test\n";
     // bzero(buffer,256);
     // for (int i = 0; i < 3; i++){
     //     buffer[i] = first[0].binaryValues[i];
