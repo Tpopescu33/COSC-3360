@@ -15,8 +15,7 @@
 #include <pthread.h>
 #include <sstream>
 
-// struct sockaddr_in serv_addr;
-// struct hostent *server;
+// struct to hold info to pass to threads
 
 struct info {
     std::string binaryValues;
@@ -26,24 +25,28 @@ struct info {
     struct hostent *server;
     struct sockaddr_in serv_addr;
 };
+
+
 void error(char *msg)
 {
     perror(msg);
     exit(0);
 }
 
+//thread function
+
 void * decode(void *x_void_ptr)
 {
-    
+    // pointer stuff to get info passed
 	struct info *x_ptr = (struct info *)x_void_ptr;
    
 
-    // std::cout<<"argc: "<<x_ptr->argc<<", argv0: "<<x_ptr->argv[0]<<", argv2: "<<x_ptr->argv[2]<<std::endl;
+   
     int sockfd, portno, n;
     struct sockaddr_in serv_addr;
     struct hostent *server;
    
-
+    //create char arrays to hold values
     char buffer[256];
 
     char argv0[x_ptr->argv[0].length()];
@@ -59,27 +62,30 @@ void * decode(void *x_void_ptr)
         argv2[i] = x_ptr->argv[2].at(i);
     }
     
-// std::cout<<"argc: "<<x_ptr->argc<<", argv0: "<<argv0<<", argv2: "<<argv2<<std::endl;
+
     
     if (x_ptr -> argc < 3) {
        fprintf(stderr,"usage %s hostname port\n", argv0);
        exit(0);
     }
+    //socket stuff, copied template from Dr. Rincon and made changes
     portno = atoi(argv2);
      
     
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) 
         error("ERROR opening socket");
-    // std::cout<<"sockfd: "<<sockfd<<"\n";
+    
+    //here I had to send the original server from the main function in order for it to work on moodle.
+    //if i call gethostbyname again i get a no such host error on moodle. (works fine in VSC)
     server = x_ptr->server;
     
-    //std::cout<<"address: "<<server<<"\n";
+    
     if (server == NULL) {
-        fprintf(stderr,"ERROR, no such h1ost\n");
+        fprintf(stderr,"ERROR, no such host\n");
         exit(0);
     }
-    //std::cout<<"address: "<<server<<"\n";
+    
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     bcopy((char *)server->h_addr, 
@@ -88,33 +94,30 @@ void * decode(void *x_void_ptr)
     serv_addr.sin_port = htons(portno);
     if (connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0) 
         error("ERROR connecting");
-    // printf("connected\n");
+    
     bzero(buffer,256);
 
+    //load binary values into buffer
     for (int i = 0; i < sizeof(x_ptr->binaryValues); i++){
         buffer[i] = x_ptr->binaryValues[i];
     }
-    // // printf("Here is the message: %s\n",buffer);
-
+   
+    //send buffer to server
     n = write(sockfd,buffer,strlen(buffer));
     if (n < 0) 
         error("ERROR reading to socket");
     bzero(buffer,256);
 
-     n = read(sockfd, buffer, 255);
-    //   printf("Here is the message: %s\n",buffer);
+    //get buffer back from server
+    n = read(sockfd, buffer, 255);
+    //copy buffer to answers
     x_ptr->answers[0] = buffer[0];
     if (n < 0) 
         error("ERROR writing to socket");
     bzero(buffer,256);
     close(sockfd);
    
-    // n = read(sockfd1,buffer,255);
-    // if (n < 0) 
-   
-    //      std::cout<<"ERROR reading from socket";
-   
-	// x_ptr->answers = buffer[0];
+    
 	return NULL;
 }
 
@@ -126,16 +129,18 @@ int main(int argc, char *argv[])
 {   
     int numChars;
     int numBits;
+
+    //get input
     std::string compMsg;
     getline(std::cin, compMsg);
 
-  //  std::cout <<"coded message " << compMsg<< std::endl;
+  
+    //set up socket, again most of the code is from Dr. Rincon.
 
-
-     int sockfd, portno, n;
+    int sockfd, portno, n;
     
-   struct sockaddr_in serv_addr;
-   struct hostent *server;
+    struct sockaddr_in serv_addr;
+    struct hostent *server;
 
     char buffer[256];
     if (argc < 3) {
@@ -147,7 +152,7 @@ int main(int argc, char *argv[])
     if (sockfd < 0) 
         error("ERROR opening socket");
     server = gethostbyname(argv[1]);
-    //std::cout<<"address: "<<server<<"\n";
+    
     if (server == NULL) {
         fprintf(stderr,"ERROR, no such host\n");
         exit(0);
@@ -160,10 +165,10 @@ int main(int argc, char *argv[])
     serv_addr.sin_port = htons(portno);
     if (connect(sockfd,(struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0) 
         error("ERROR connecting");
-    // printf("Please enter the message: ");
+    
     bzero(buffer,256);
-    // fgets(buffer,255,stdin);
-
+    
+    //first we send the number 5 to the server, if the server gets a 5 it'll send back the number of bits. if it doesn't get a 5 itll decode the message and send back the character.
     buffer[0] = 5;
     n = write(sockfd,buffer,strlen(buffer));
     if (n < 0) 
@@ -175,90 +180,30 @@ int main(int argc, char *argv[])
          error("ERROR reading from socket");
     
  close(sockfd);
-   numBits = std::strtol(buffer, nullptr, 10);
-//     char tempBuffer[sizeof(buffer)];
-    
-//     for (int i = 0 ; i< sizeof(buffer); i++){
-//     tempBuffer[i] = buffer[i];
-    
-//     }
-//    numBits = (int) tempBuffer;
-    
-   // printf("number of numBits: %d\n",numBits);
-    numChars = compMsg.length()/numBits;
-   // printf("number of numChars: %d\n",numChars);
-   // printf("comp MSG: %d\n",compMsg.length());
+
+    numBits = std::strtol(buffer, nullptr, 10);
+    numChars = compMsg.length()/numBits;   
+
+    //create and populate struct to send to threads
     std::vector<info> first(numChars);
-
-
+    
     for (int i = 0; i < numChars; i++){
         for (int j = 0; j < numBits; j++){
             first[i].binaryValues[j] = compMsg.at((i*numBits)+j);
-           // std::cout<<first[i].binaryValues[j];
+          
         }
         first[i].argc = argc;
         first[i].server = server;
         first[i].serv_addr = serv_addr;
+
         for (int k = 0; k < 3; k++){
             first[i].argv.push_back(argv[k]);
 
         }
-      //  std::cout<<"\n";
+     
 }
 
-    
-
-   // std::cout<<"test\n";
-    // bzero(buffer,256);
-    // for (int i = 0; i < 3; i++){
-    //     buffer[i] = first[0].binaryValues[i];
-    // }
-    
-    //   n = write(sockfd, buffer, 255);
-    //   n=read(sockfd, buffer, 255);
-    //   printf("Here is the message: %s\n",buffer);
-
-    //  if (n < 0) 
-    //      error("ERROR reading from socket");
-    // bzero(buffer,256);
-    // for (int i = 0; i < 3; i++){
-    //     buffer[i] = first[1].binaryValues[i];
-    // }
-    
-    //   n = write(sockfd, buffer, 255);
-    //    n=read(sockfd, buffer, 255);
-    //   printf("Here is the message: %s\n",buffer);
-    //  if (n < 0) 
-    //      error("ERROR reading from socket");
-    //       bzero(buffer,256);
-    // for (int i = 0; i < 3; i++){
-    //     buffer[i] = first[2].binaryValues[i];
-    // }
-    
-    //   n = write(sockfd, buffer, 255);
-    //    n=read(sockfd, buffer, 255);
-    //   printf("Here is the message: %s\n",buffer);
-    //  if (n < 0) 
-    //      error("ERROR reading from socket");
-    //       bzero(buffer,256);
-    // for (int i = 0; i < 3; i++){
-    //     buffer[i] = first[3].binaryValues[i];
-    // }
-    
-    //   n = write(sockfd, buffer, 255);
-    //    n=read(sockfd, buffer, 255);
-    //   printf("Here is the message: %s\n",buffer);
-    //  if (n < 0) 
-    //      error("ERROR reading from socket");
-    // close(sockfd);
-    // std::cout<<argv[0]<<std::endl;
-
-    // std::cout<<"test: "<<first[1].binaryValues[0]<<first[1].binaryValues[1]<<first[1].binaryValues[2]<<std::endl;
-    // std::cout<<"argc: "<<first[0].argc<<", argv0: "<<first[0].argv[0]<<", argv2: "<<first[0].argv[2]<<std::endl;
-    // std::cout<<"argc: "<<first[1].argc<<", argv0: "<<first[1].argv[0]<<", argv2: "<<first[1].argv[2]<<std::endl;
-    // std::cout<<"argc: "<<first[2].argc<<", argv0: "<<first[2].argv[0]<<", argv2: "<<first[2].argv[2]<<std::endl;
-    // std::cout<<"argc: "<<first[3].argc<<", argv0: "<<first[3].argv[0]<<", argv2: "<<first[3].argv[2]<<std::endl;
-    // std::cout<<"argc: "<<first[4].argc<<", argv0: "<<first[4].argv[0]<<", argv2: "<<first[4].argv[2]<<std::endl;
+    //create threads
 
     std::vector<pthread_t> tid(numChars);
 
@@ -270,6 +215,9 @@ int main(int argc, char *argv[])
 
 		}	
     }
+
+    //join to close threads
+
     for (int i = 0; i < numChars; i++)
         	pthread_join(tid[i], NULL);
 
